@@ -153,6 +153,7 @@ void EXTI3_IRQHandler(void)
 {
 	static INT8U Msg_KeyValue = 0x00;
 
+	/* Increment ISR nesting level */
 	OSIntEnter();
 	if(EXTI_GetITStatus(EXTI_Line3) != RESET)
 	{
@@ -160,17 +161,21 @@ void EXTI3_IRQHandler(void)
 		/* Interrupt task */
 		LED3_ON();
 
+		/* Read MPR121 TouchStatusRegister */
 		Msg_KeyValue = Key_Scan(MPR_TouchStatus());
 		
 		if(Msg_KeyValue != 0)
 		{
 //			Voice_Play(VoiceCmd_Di);
+			
+			/* Send the key value to os mail box */
 			OSMboxPost(MBox_KeyValve,&Msg_KeyValue);
 		}
 		else
 		{
 		}
 		
+		/* Reread MPR121 TouchStatusRegister */
 		MPR_TouchStatus();
 		
 		/* Clear the  EXTI line 3 pending bit */
@@ -180,6 +185,8 @@ void EXTI3_IRQHandler(void)
 	else
 	{
 	}
+	
+	/* Allocate storage for CPU status register. */
 	OSIntExit();
 }
 

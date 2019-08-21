@@ -36,7 +36,7 @@ int main(void)
 {
 	INT8U Ret;
 
-	/* 屏蔽全局中断 */
+	/* Mask global interrupt */
 	__set_PRIMASK(1);
 	
 	NVIC_Config();
@@ -51,10 +51,10 @@ int main(void)
 
 	IWWG_Init();
 	
-	/* 允许全局中断 */
+	/* Enable global interrupt */
 	__set_PRIMASK(0);
 
-	for(uint32_t i=0;i < 8;i++)
+	for(INT32U i=0;i < 6;i++)
 	{
 		TIM2_Delay_ms(100);
 		LED2_OR();
@@ -88,7 +88,7 @@ int main(void)
 }
 
 /**
-  * @brief  NVIC Configure function
+  * @brief  NVIC configure function
   * @param  NULL
   * @return NULL
   */
@@ -110,7 +110,7 @@ static void NVIC_Config(void)
 }
 
 /**
-  * @brief  Disable JTAG function
+  * @brief  JTAG disable function
   * @param  NULL
   * @return NULL
   */
@@ -145,7 +145,7 @@ static void RCC_Config(void)
 }
 
 /**
-  * @brief  Independent Watch Dog Initialization function
+  * @brief  Independent Watch Dog initialization function
   * @param  NULL
   * @return NULL
   */
@@ -153,7 +153,7 @@ static void IWWG_Init(void)
 {
 	__IO uint32_t LsiFreq = 40000;
 	
-	/* IWDG timeout equal to 1 s (the timeout may varies due to LSI frequency
+	/* IWDG timeout equal to 2 s (the timeout may varies due to LSI frequency
 		dispersion) */
 	/* Enable write access to IWDG_PR and IWDG_RLR registers */
 	IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
@@ -162,7 +162,7 @@ static void IWWG_Init(void)
 	IWDG_SetPrescaler(IWDG_Prescaler_256);
 	
   /* Set counter reload value to obtain 1s IWDG TimeOut. */
-	IWDG_SetReload(LsiFreq/256);
+	IWDG_SetReload(LsiFreq/256*2);
 
 	/* Reload IWDG counter */
 	IWDG_ReloadCounter();
@@ -176,16 +176,16 @@ static void IWWG_Init(void)
 // 初始化系统节拍
 void  OS_CPU_SysTickInit (void)
 {
-    RCC_ClocksTypeDef  rcc_clocks;
+    RCC_ClocksTypeDef  RCC_Clocks;
 
     // 获取系统频率
-    RCC_GetClocksFreq(&rcc_clocks);
+    RCC_GetClocksFreq(&RCC_Clocks);
 
     // 配置HCLK作为SysTick时钟
     SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK);
     
     // 配置自动加载数值
-    SysTick->LOAD = (rcc_clocks.HCLK_Frequency / OS_TICKS_PER_SEC) - 1;
+    SysTick->LOAD = (RCC_Clocks.HCLK_Frequency / OS_TICKS_PER_SEC) - 1;
     
     // 使能SysTick
     SysTick->CTRL |=  0x01;

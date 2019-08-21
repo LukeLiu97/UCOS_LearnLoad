@@ -33,6 +33,7 @@
 #define STACK_LEN_LED		(128)
 #define STACK_LEN_KEY		(128)
 #define STACK_LEN_WDOG		(128)
+
 #define TASK_PRIO_START		(0)
 #define TASK_PRIO_LED		(1)
 #define TASK_PRIO_KEY		(2)
