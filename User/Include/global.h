@@ -26,6 +26,8 @@ extern OS_STK Stack_Start[STACK_LEN_START];
 
 extern OS_EVENT *MBox_KeyValve;
 
+extern OS_EVENT *MQueue;
+
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */

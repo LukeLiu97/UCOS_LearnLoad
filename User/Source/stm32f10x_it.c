@@ -151,7 +151,8 @@ void DebugMon_Handler(void)
   */
 void EXTI3_IRQHandler(void)
 {
-	static INT8U Msg_KeyValue = 0x00;
+	static INT8U Count = 0;
+	static INT8U Msg_KeyValue[MQUEUE_LEN_KEYVALUE] = {0};
 
 	/* Increment ISR nesting level */
 	OSIntEnter();
@@ -162,14 +163,21 @@ void EXTI3_IRQHandler(void)
 		LED3_ON();
 
 		/* Read MPR121 TouchStatusRegister */
-		Msg_KeyValue = Key_Scan(MPR_TouchStatus());
+		Msg_KeyValue[Count] = Key_Scan(MPR_TouchStatus());
 		
-		if(Msg_KeyValue != 0)
+		if(Msg_KeyValue[Count] != 0)
 		{
 //			Voice_Play(VoiceCmd_Di);
 			
-			/* Send the key value to os mail box */
-			OSMboxPost(MBox_KeyValve,&Msg_KeyValue);
+			OSQPost(MQueue,&Msg_KeyValue[Count]);
+			Count++;
+			if(Count >= MQUEUE_LEN_KEYVALUE)
+			{
+				Count = 0;
+			}
+			else
+			{
+			}
 		}
 		else
 		{

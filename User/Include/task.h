@@ -39,6 +39,8 @@
 #define TASK_PRIO_KEY		(2)
 #define TASK_PRIO_WDOG		(3)
 
+#define MQUEUE_LEN_KEYVALUE	(128)
+
 /* Exported functions ------------------------------------------------------- */
 void Task_Start(void *pd);
 void Task_LED(void *pd);
