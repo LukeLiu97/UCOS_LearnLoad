@@ -10,6 +10,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stm32f10x.h"
 
 /** @addtogroup main
   * @{
@@ -48,11 +49,16 @@ int main(void)
 	Key_Init();
 	MPR_IRQ_Init();
 	EXTI3_Init();
-
-//	IWWG_Init();
 	
+	SPI2_Init();
+	OLED_Init();
+	OLED_Config();
+	OLED_Clear();
+//	IWWG_Init();
+
 	/* Enable global interrupt */
 	__set_PRIMASK(0);
+	
 
 	for(INT32U i=0;i < 6;i++)
 	{
@@ -132,8 +138,14 @@ static void RCC_Config(void)
 	/* Enable AFIO clock */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	
+	/* GPIOA Periph clock enable */
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+	
 	/* GPIOB Periph clock enable */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+	
+	/* SPI2 Periph clock enable */
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
 	
 	/* TIM4 clock enable */
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);

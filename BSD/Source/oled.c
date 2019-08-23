@@ -10,11 +10,12 @@
 /* Includes ------------------------------------------------------------------*/
 #include "oled.h"
 
-/** @addtogroup SPI peri
+/** @addtogroup OLED Periph
   * @{
   */
 
 /* Private typedef -----------------------------------------------------------*/
+static u8 ReversalFlag = 0x00;
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 
@@ -108,9 +109,9 @@ void OLED_SendData(u8 Data)
 void OLED_Config(void)
 {
     OLED_RES_L();
-    delay_ms(100);
+    TIM2_Delay_ms(100);
     OLED_RES_H();
-    delay_ms(100); //复位
+    TIM2_Delay_ms(100); //复位
 
     OLED_SendCmd(0xAE); //关闭显示
     OLED_SendCmd(0xD5); //设置时钟分频因子,震荡频率
@@ -210,6 +211,20 @@ void OLED_ClearPart(u8 StartRowNum, u8 Height, u8 StartColumn, u8 Width)
     return;
 }
 
+void OLED_Reversal(u8 Cmd)
+{
+	if(Cmd != 0x00)
+	{
+		ReversalFlag = 0x01;
+	}
+	else
+	{
+		ReversalFlag = 0x00;
+	}
+	
+	return ;
+}
+
 // 每行占8的像素，视为屏幕行 Row 0~7
 u8 OLED_Show_XxN8_Character(u8 Row, u8 Column, u8 RowHeight, u8 Width, const u8 *FontArray)
 {
@@ -245,6 +260,38 @@ void OLED_ShowString(u8 RowNumber, u8 RowHeight, u8 Column, const u8 *StringFont
     return;
 }
 
+void OLED_DisplayNumber(u8 RowNumber, u8 Column, u32 Number, u8 ShowLength, u8 FontSize)
+{
+    if (FontSize == 1) // 4 x 8字体
+    {
+        for (u32 i = ShowLength - 1; i < ShowLength; i--)
+        {
+            OLED_Show_XxN8_Character(RowNumber, Column + i * 4, 1, 4, &Number_4x8[Number % 10][0]);
+            Number /= 10;
+        }
+    }
+    else if (FontSize == 2) // 8 x 16字体
+    {
+        for (u32 i = ShowLength - 1; i < ShowLength; i--)
+        {
+            OLED_Show_XxN8_Character(RowNumber, Column + i * 8, 2, 8, &Number_8x16[Number % 10][0]);
+            Number /= 10;
+        }
+    }
+    else if (FontSize == 3)
+    {
+        for (u32 i = ShowLength - 1; i < ShowLength; i--)
+        {
+            OLED_Show_XxN8_Character(RowNumber, Column + i * 12, 3, 12, &Number_12x24[Number % 10][0]);
+            Number /= 10;
+        }
+    }
+    else
+    {
+        return;
+    }
+}
+
 void OLED_ShowPicture(u8 x, u8 y, u8 px, u8 py, const u8 *Picture)
 {
     u8 i;
@@ -257,12 +304,12 @@ void OLED_ShowPicture(u8 x, u8 y, u8 px, u8 py, const u8 *Picture)
         {
             if (ReversalFlag == 0)
             {
-                //				OLED_SendData(((u8 (*)[px])Picture)[CurrentRow][i]);// 强转常量类型操作不合适
+                //	OLED_SendData(((u8 (*)[px])Picture)[CurrentRow][i]);// 强转常量类型操作不合适
                 OLED_SendData(*(Picture + CurrentRow * px + i));
             }
             else
             {
-                //				OLED_SendData(~((u8 (*)[px])Picture)[CurrentRow][i]);// 强转常量类型操作不合适
+                //	OLED_SendData(~((u8 (*)[px])Picture)[CurrentRow][i]);// 强转常量类型操作不合适
                 OLED_SendData(*(Picture + CurrentRow * px + i));
             }
         }

@@ -23,15 +23,18 @@ extern "C"
 //#include "os_cpu.h"
 //#include "os_cfg.h"	
 
-#include "global.h"
-
 #include "task.h"
+
+#include "global.h"
 	
 #include "led.h"
 #include "time.h"
 #include "tim.h"
 #include "key.h"
 #include "voice.h"
+#include "spi.h"
+#include "oled.h"
+#include "font.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

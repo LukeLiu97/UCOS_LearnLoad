@@ -25,7 +25,7 @@ OS_STK Stack_Start[STACK_LEN_START];
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-//OS_EVENT *MBox_KeyValve = NULL;
+OS_EVENT *MBox_KeyValve = NULL;
 OS_EVENT *MBox_WDOGVal = NULL;
 
 OS_EVENT *Sem_LED = NULL;
@@ -36,8 +36,11 @@ OS_FLAG_GRP *FLAG_GRP = NULL;
 OS_EVENT *MQueue = NULL;
 void *Msg_KeyValue[MQUEUE_LEN_KEYVALUE] = {0};
 
+OS_EVENT *Mutex;
+
 OS_STK Stack_LED[STACK_LEN_LED];
 OS_STK Stack_Key[STACK_LEN_KEY];
+OS_STK Stack_OLED[STACK_LEN_OLED];
 OS_STK Stack_WDOG[STACK_LEN_WDOG];
 
 /* Private function prototypes -----------------------------------------------*/
@@ -50,7 +53,7 @@ void Task_Start(void *pd)
 	
 	do
 	{
-//		MBox_KeyValve = OSMboxCreate((void *)0);
+		MBox_KeyValve = OSMboxCreate((void *)0);
 //		MBox_WDOGVal = OSMboxCreate((void *)0);
 		
 		Sem_LED = OSSemCreate(0x00);
@@ -58,6 +61,8 @@ void Task_Start(void *pd)
 		FLAG_GRP = OSFlagCreate(0x00,&Err);
 		
 		MQueue = OSQCreate(&Msg_KeyValue[0],MQUEUE_LEN_KEYVALUE);
+		
+		Mutex = OSMutexCreate(TASK_PRIO_IDLE,&Err);
 		
 		Retval = OSTaskCreate(
 					Task_LED,
@@ -70,9 +75,14 @@ void Task_Start(void *pd)
 					&Stack_Key[STACK_LEN_KEY-1],
 					TASK_PRIO_KEY);
 		Retval = OSTaskCreate(
-					Task_WDog,
+					Task_Key,
 					NULL,
-					&Stack_WDOG[STACK_LEN_KEY-1],
+					&Stack_Key[STACK_LEN_KEY-1],
+					TASK_PRIO_KEY);
+		Retval = OSTaskCreate(
+					Task_OLED,
+					NULL,
+					&Stack_OLED[STACK_LEN_OLED-1],
 					TASK_PRIO_WDOG);
 		
 		if(Retval == OS_ERR_NONE)
@@ -119,7 +129,8 @@ void Task_Key(void *pd)
 			if(*((INT8U *)pmsg) != 0)
 			{
 				OSSemPost(Sem_LED);
-				OSTimeDly(200);				
+				OSMboxPost(MBox_KeyValve,pmsg);
+				OSTimeDly(50);
 //				switch(*((INT8U *)pmsg))
 //				{
 //					case '1':
@@ -138,6 +149,33 @@ void Task_Key(void *pd)
 		}
 //		OSMboxPost(MBox_WDOGVal,&Msg_WDOGVal);
 	
+	}
+	
+	// No Retval
+}
+
+void Task_OLED(void *pd)
+{
+	INT8U Err;
+	void *pmsg = NULL;
+	while(1)
+	{
+		for(uint32_t i = 0;i < 16;i++)
+		{
+			OSMutexPend(Mutex,0,&Err);
+		
+			pmsg = (void *)OSMboxPend(MBox_KeyValve,0,&Err);
+			
+			if(pmsg != NULL)
+			{
+				OLED_DisplayNumber(0,i * 8,*(INT8U *)pmsg - '0',1,2);
+			}
+			else
+			{
+			}
+			
+			OSMutexPost(Mutex);
+			}
 	}
 	
 	// No Retval
