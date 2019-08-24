@@ -24,7 +24,7 @@
 static void JTAG_Disable(void);
 static void NVIC_Config(void);
 static void RCC_Config(void);
-//static void IWWG_Init(void);
+static void IWWG_Init(void);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -45,7 +45,9 @@ int main(void)
 	JTAG_Disable();
 	
 	LED_Init();
+	
 	VoiceModule_Init();
+	
 	Key_Init();
 	MPR_IRQ_Init();
 	EXTI3_Init();
@@ -54,7 +56,8 @@ int main(void)
 	OLED_Init();
 	OLED_Config();
 	OLED_Clear();
-//	IWWG_Init();
+	
+	IWWG_Init();
 
 	/* Enable global interrupt */
 	__set_PRIMASK(0);
@@ -156,32 +159,32 @@ static void RCC_Config(void)
 	return ;
 }
 
-///**
-//  * @brief  Independent Watch Dog initialization function
-//  * @param  NULL
-//  * @return NULL
-//  */
-//static void IWWG_Init(void)
-//{
-//	__IO uint32_t LsiFreq = 40000;
-//	
-//	/* IWDG timeout equal to 2 s (the timeout may varies due to LSI frequency
-//		dispersion) */
-//	/* Enable write access to IWDG_PR and IWDG_RLR registers */
-//	IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+/**
+  * @brief  Independent Watch Dog initialization function
+  * @param  NULL
+  * @return NULL
+  */
+static void IWWG_Init(void)
+{
+	__IO uint32_t LsiFreq = 40000;
+	
+	/* IWDG timeout equal to 2 s (the timeout may varies due to LSI frequency
+		dispersion) */
+	/* Enable write access to IWDG_PR and IWDG_RLR registers */
+	IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
 
-//	/* IWDG counter clock: LSI/256 */
-//	IWDG_SetPrescaler(IWDG_Prescaler_256);
-//	
-//  /* Set counter reload value to obtain 1s IWDG TimeOut. */
-//	IWDG_SetReload(LsiFreq/256*2);
+	/* IWDG counter clock: LSI/256 */
+	IWDG_SetPrescaler(IWDG_Prescaler_256);
+	
+  /* Set counter reload value to obtain 1s IWDG TimeOut. */
+	IWDG_SetReload(LsiFreq/256*2);
 
-//	/* Reload IWDG counter */
-//	IWDG_ReloadCounter();
+	/* Reload IWDG counter */
+	IWDG_ReloadCounter();
 
-//	/* Enable IWDG (the LSI oscillator will be enabled by hardware) */
-//	IWDG_Enable();
-//}
+	/* Enable IWDG (the LSI oscillator will be enabled by hardware) */
+	IWDG_Enable();
+}
 
 /* Exported functions --------------------------------------------------------*/
 

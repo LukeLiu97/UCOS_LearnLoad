@@ -41,7 +41,7 @@ OS_EVENT *Mutex;
 OS_STK Stack_LED[STACK_LEN_LED];
 OS_STK Stack_Key[STACK_LEN_KEY];
 OS_STK Stack_OLED[STACK_LEN_OLED];
-OS_STK Stack_WDOG[STACK_LEN_WDOG];
+OS_STK Stack_WDog[STACK_LEN_WDOG];
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -54,7 +54,7 @@ void Task_Start(void *pd)
 	do
 	{
 		MBox_KeyValve = OSMboxCreate((void *)0);
-//		MBox_WDOGVal = OSMboxCreate((void *)0);
+		MBox_WDOGVal = OSMboxCreate((void *)0);
 		
 		Sem_LED = OSSemCreate(0x00);
 		
@@ -83,6 +83,11 @@ void Task_Start(void *pd)
 					Task_OLED,
 					NULL,
 					&Stack_OLED[STACK_LEN_OLED-1],
+					TASK_PRIO_OLED);
+		Retval = OSTaskCreate(
+					Task_WDog,
+					NULL,
+					&Stack_WDog[STACK_LEN_WDOG-1],
 					TASK_PRIO_WDOG);
 		
 		if(Retval == OS_ERR_NONE)
@@ -102,14 +107,14 @@ void Task_Start(void *pd)
 
 void Task_LED(void *pd)
 {
-//	INT8U Msg_WDOGVal = WDOG_VAL;
+	INT8U Msg_WDOGVal = WDOG_VAL;
 	INT8U Err;
 	while(1)
 	{
 		OSSemPend(Sem_LED,0,&Err);
 		LED3_OR();
 		
-//		OSMboxPost(MBox_WDOGVal,&Msg_WDOGVal);
+		OSMboxPost(MBox_WDOGVal,&Msg_WDOGVal);
 	}
 	
 	// No Retval
@@ -118,7 +123,7 @@ void Task_LED(void *pd)
 INT8U *pmsg = NULL;
 void Task_Key(void *pd)
 {
-//	INT8U Msg_WDOGVal = WDOG_VAL_KEY;
+	INT8U Msg_WDOGVal = WDOG_VAL_KEY;
 
 	INT8U Err;
 	while(1)
@@ -130,25 +135,25 @@ void Task_Key(void *pd)
 			{
 				OSSemPost(Sem_LED);
 				OSMboxPost(MBox_KeyValve,pmsg);
-				OSTimeDly(50);
-//				switch(*((INT8U *)pmsg))
-//				{
-//					case '1':
-//						OSFlagPost(FLAG_GRP,0x01 << 0,OS_FLAG_SET,&Err);
-//						break;
-//					case '2':
-//						OSFlagPost(FLAG_GRP,0x01 << 1,OS_FLAG_SET,&Err);
-//						break;
-//					case '3':
-//						OSFlagPost(FLAG_GRP,0x01 << 2,OS_FLAG_SET,&Err);
-//						break;
-//					default:
-//						;
-//				}
+				OSTimeDly(10);
+				switch(*((INT8U *)pmsg))
+				{
+					case '1':
+						OSFlagPost(FLAG_GRP,0x01 << 0,OS_FLAG_SET,&Err);
+						break;
+					case '2':
+						OSFlagPost(FLAG_GRP,0x01 << 1,OS_FLAG_SET,&Err);
+						break;
+					case '3':
+						OSFlagPost(FLAG_GRP,0x01 << 2,OS_FLAG_SET,&Err);
+						break;
+					default:
+						;
+				}
 			}
 		}
-//		OSMboxPost(MBox_WDOGVal,&Msg_WDOGVal);
-	
+
+		OSMboxPost(MBox_WDOGVal,&Msg_WDOGVal);
 	}
 	
 	// No Retval
@@ -160,22 +165,25 @@ void Task_OLED(void *pd)
 	void *pmsg = NULL;
 	while(1)
 	{
-		for(uint32_t i = 0;i < 16;i++)
+		for(uint32_t i = 0;i < 7;i+=2)
 		{
-			OSMutexPend(Mutex,0,&Err);
-		
-			pmsg = (void *)OSMboxPend(MBox_KeyValve,0,&Err);
-			
-			if(pmsg != NULL)
+			for(uint32_t j = 0;j < 16;j++)
 			{
-				OLED_DisplayNumber(0,i * 8,*(INT8U *)pmsg - '0',1,2);
+				pmsg = (void *)OSMboxPend(MBox_KeyValve,0,&Err);
+				
+				OSMutexPend(Mutex,0,&Err);
+				
+				if(pmsg != NULL)
+				{
+					OLED_DisplayNumber(i,j * 8,*(INT8U *)pmsg - '0',1,2);
+				}
+				else
+				{
+				}
+				
+				OSMutexPost(Mutex);
 			}
-			else
-			{
-			}
-			
-			OSMutexPost(Mutex);
-			}
+		}
 	}
 	
 	// No Retval
@@ -183,26 +191,26 @@ void Task_OLED(void *pd)
 
 void Task_WDog(void *pd)
 {
-//	INT8U Msg_WDOGVal = 0x00;
-//	INT8U *pmsg = NULL;
+	INT8U Msg_WDOGVal = 0x00;
+	INT8U *pmsg = NULL;
 	INT8U Err = 0;
 	while(1)
 	{
-//		pmsg = (void *)OSMboxPend(MBox_WDOGVal,0,&Err);
-//		if(pmsg != NULL)
-//		{
-//			Msg_WDOGVal |= *(INT8U *)(pmsg);
-//			if(Msg_WDOGVal == WDOG_VAL)
-//			{
-//				// TODO Î¹¹·
-//				Msg_WDOGVal = 0x00;
-//				/* Reload IWDG counter */
-//				IWDG_ReloadCounter(); 
-//			}
-//			else
-//			{
-//				
-//			}
+		pmsg = (void *)OSMboxPend(MBox_WDOGVal,0,&Err);
+		if(pmsg != NULL)
+		{
+			Msg_WDOGVal |= *(INT8U *)(pmsg);
+			if(Msg_WDOGVal == WDOG_VAL)
+			{
+				// TODO Î¹¹·
+				Msg_WDOGVal = 0x00;
+				/* Reload IWDG counter */
+				IWDG_ReloadCounter(); 
+			}
+			else
+			{
+				
+			}
 			
 			OSFlagPend(FLAG_GRP,(0x01 << 0)|(0x01 << 1)|(0x01 << 2),(OS_FLAG_WAIT_SET_AND)|(OS_FLAG_CONSUME),1,&Err);
 			if(Err == OS_ERR_NONE)
@@ -213,11 +221,11 @@ void Task_WDog(void *pd)
 			else
 			{
 			}
-//		}
-//		else
-//		{
-//		}
-//			
+		}
+		else
+		{
+		}
+			
 	}
 	
 	
