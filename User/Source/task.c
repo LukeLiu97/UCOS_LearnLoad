@@ -36,11 +36,13 @@ OS_FLAG_GRP *FLAG_GRP = NULL;
 OS_EVENT *MQueue = NULL;
 void *Msg_KeyValue[MQUEUE_LEN_KEYVALUE] = {0};
 
-OS_EVENT *Mutex;
+OS_EVENT *Mutex_OLED;
+OS_EVENT *Mutex_Temper;
 
 OS_STK Stack_LED[STACK_LEN_LED];
 OS_STK Stack_Key[STACK_LEN_KEY];
 OS_STK Stack_OLED[STACK_LEN_OLED];
+OS_STK Stack_Temper[STACK_LEN_TEMPER];
 OS_STK Stack_WDog[STACK_LEN_WDOG];
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,7 +64,8 @@ void Task_Start(void *pd)
 		
 		MQueue = OSQCreate(&Msg_KeyValue[0],MQUEUE_LEN_KEYVALUE);
 		
-		Mutex = OSMutexCreate(TASK_PRIO_IDLE,&Err);
+		Mutex_OLED = OSMutexCreate(TASK_PRIO_IDLE_1,&Err);
+		Mutex_Temper = OSMutexCreate(TASK_PRIO_IDLE_2,&Err);
 		
 		Retval = OSTaskCreate(
 					Task_LED,
@@ -84,6 +87,11 @@ void Task_Start(void *pd)
 					NULL,
 					&Stack_OLED[STACK_LEN_OLED-1],
 					TASK_PRIO_OLED);
+		Retval = OSTaskCreate(
+					Task_Temper,
+					NULL,
+					&Stack_Temper[STACK_LEN_TEMPER-1],
+					TASK_PRIO_TEMPER);
 		Retval = OSTaskCreate(
 					Task_WDog,
 					NULL,
@@ -163,6 +171,7 @@ void Task_OLED(void *pd)
 {
 	INT8U Err;
 	void *pmsg = NULL;
+	
 	while(1)
 	{
 		for(uint32_t i = 0;i < 7;i+=2)
@@ -171,7 +180,7 @@ void Task_OLED(void *pd)
 			{
 				pmsg = (void *)OSMboxPend(MBox_KeyValve,0,&Err);
 				
-				OSMutexPend(Mutex,0,&Err);
+				OSMutexPend(Mutex_OLED,0,&Err);
 				
 				if(pmsg != NULL)
 				{
@@ -181,9 +190,38 @@ void Task_OLED(void *pd)
 				{
 				}
 				
-				OSMutexPost(Mutex);
+				OSMutexPost(Mutex_OLED);
 			}
 		}
+	}
+	
+	// No Retval
+}
+
+void Task_Temper(void *pd)
+{
+	INT8U Err;
+	float TemperValue;
+	
+	while(1)
+	{
+		
+
+		OSMutexPend(Mutex_Temper,0,&Err);
+				
+		TemperValue = ADC_GetTemperValue();
+		
+		if(TemperValue > 0)
+		{
+			OLED_DisplayNumber(0,0,(u32)TemperValue,2,2);
+			OLED_DisplayNumber(0,24,(u32)(TemperValue*100)%100,2,2);
+		}
+		else
+		{
+		}  
+		OSMutexPost(Mutex_Temper);
+		OSTimeDly(50);
+
 	}
 	
 	// No Retval

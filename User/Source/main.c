@@ -16,15 +16,21 @@
   * @{
   */
 
+extern float ADC_GetTemperValue(void);
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+INT8U Ret;
+float Temper;
+
 /* Private function prototypes -----------------------------------------------*/
 static void JTAG_Disable(void);
 static void NVIC_Config(void);
 static void RCC_Config(void);
-static void IWWG_Init(void);
+void IWWG_Init(void);
+void DebugMode_PrintfSysInfo(void);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -35,8 +41,6 @@ static void IWWG_Init(void);
   */
 int main(void)
 {
-	INT8U Ret;
-
 	/* Mask global interrupt */
 	__set_PRIMASK(1);
 	
@@ -53,15 +57,19 @@ int main(void)
 	EXTI3_Init();
 	
 	SPI2_Init();
+	
 	OLED_Init();
 	OLED_Config();
 	OLED_Clear();
 	
-	IWWG_Init();
+	ADC_TempSensor_Init();
+	
+	USART1_Init(115200);
+	
+//	IWWG_Init();
 
 	/* Enable global interrupt */
 	__set_PRIMASK(0);
-	
 
 	for(INT32U i=0;i < 6;i++)
 	{
@@ -69,6 +77,8 @@ int main(void)
 		LED2_OR();
 	}
 	LED2_OFF();
+	
+	DebugMode_PrintfSysInfo();
 	
 	OS_CPU_SysTickInit();
 	OSInit();
@@ -147,6 +157,9 @@ static void RCC_Config(void)
 	/* GPIOB Periph clock enable */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 	
+	/* USART1 Periph clock enable */
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+	
 	/* SPI2 Periph clock enable */
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
 	
@@ -159,12 +172,33 @@ static void RCC_Config(void)
 	return ;
 }
 
+void DebugMode_PrintfSysInfo(void)
+{
+#ifdef DEBUG
+	RCC_ClocksTypeDef RCC_Clocks;
+
+	RCC_GetClocksFreq(&RCC_Clocks);
+	
+	printf("-----------------------------------------------\r\n");
+	printf("Debug Mode\r\n");
+	printf("SYSCLK_Frequency:\t%d\r\n",RCC_Clocks.SYSCLK_Frequency);
+	printf("HCLK_Frequency:\t\t%d\r\n",RCC_Clocks.HCLK_Frequency);
+	printf("PCLK1_Frequency:\t%d\r\n",RCC_Clocks.PCLK1_Frequency);
+	printf("PCLK2_Frequency:\t%d\r\n",RCC_Clocks.PCLK2_Frequency);
+	printf("ADCCLK_Frequency:\t%d\r\n",RCC_Clocks.ADCCLK_Frequency);
+	printf("-----------------------------------------------\r\n");
+#endif
+	
+	return ;
+}
+
+
 /**
   * @brief  Independent Watch Dog initialization function
   * @param  NULL
   * @return NULL
   */
-static void IWWG_Init(void)
+void IWWG_Init(void)
 {
 	__IO uint32_t LsiFreq = 40000;
 	
@@ -208,6 +242,25 @@ void  OS_CPU_SysTickInit (void)
     // 使能SysTick中断
     SysTick->CTRL |= 0x02;
 }
+
+#ifdef DEBUG
+/**
+  * @brief  Retargets the C library printf function to the USART
+  * @param  字符串
+  * @param  文件指针
+  * @retval 字符串
+  */
+int fputc(int ch,FILE* f)
+{
+	USART_SendData(USART1,ch);
+	while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET)
+	{
+	}
+	
+	return ch;
+}
+#endif
+
     
 /**
   * @}

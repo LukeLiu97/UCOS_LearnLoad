@@ -42,6 +42,7 @@ void Delay(u32 t)
         {
             for (u32 j = 0; j < 100; j++)
             {
+				__NOP;
             }
         }
     }

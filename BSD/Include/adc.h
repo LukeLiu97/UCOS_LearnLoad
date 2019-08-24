@@ -1,48 +1,31 @@
 /**
 ******************************************************************************
-  * @file       main.h
-  * @brief      主程序头文件
+  * @file       adc.h
+  * @brief      STM ADC Driver
   * @version    1.0
-  * @date       Aug-20-2019 Tue
+  * @date       Aug-24-2019 Sat
 ******************************************************************************
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H
-#define __MAIN_H
+#ifndef __ADC_H
+#define __ADC_H
 
 #ifdef __cplusplus
-extern "C"
-{
+ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
-#include "stdio.h"
-#include "ucos_ii.h"
-//#include "os_cpu.h"
-//#include "os_cfg.h"	
-
-#include "task.h"
-
-#include "global.h"
-	
-#include "led.h"
-#include "uart.h"
-#include "time.h"
-#include "tim.h"
-#include "key.h"
-#include "voice.h"
-#include "spi.h"
-#include "oled.h"
-#include "font.h"
-#include "adc.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
-
+void ADC_TempSensor_Init(void);
+u16 ADC_ReadADC1(void);
+float ADC_ConvertVot(u16 ADCValue);
+float ADC_GetTemperValue(void);
 
 #ifdef __cplusplus
 }
