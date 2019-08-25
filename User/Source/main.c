@@ -16,15 +16,13 @@
   * @{
   */
 
-extern float ADC_GetTemperValue(void);
+/* Extern variables ----------------------------------------------------------*/
+extern OS_STK Stack_Start[STACK_LEN_START];
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-INT8U Ret;
-float Temper;
-
 /* Private function prototypes -----------------------------------------------*/
 static void JTAG_Disable(void);
 static void NVIC_Config(void);
@@ -41,6 +39,8 @@ void DebugMode_PrintfSysInfo(void);
   */
 int main(void)
 {
+	INT8U Ret;
+	
 	/* Mask global interrupt */
 	__set_PRIMASK(1);
 	
@@ -62,7 +62,7 @@ int main(void)
 	OLED_Config();
 	OLED_Clear();
 	
-	ADC_TempSensor_Init();
+	ADC1_DMA_Init();
 	
 	USART1_Init(115200);
 	

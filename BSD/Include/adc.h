@@ -18,13 +18,17 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
+#include "global.h"
+
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 void ADC_TempSensor_Init(void);
+void ADC1_DMA_Init(void);
 u16 ADC_ReadADC1(void);
 float ADC_ConvertVot(u16 ADCValue);
+float ADC_ConvertTemp(u16 ADCValue);
 float ADC_GetTemperValue(void);
 
 #ifdef __cplusplus

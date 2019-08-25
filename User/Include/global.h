@@ -18,18 +18,15 @@ extern "C"
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
-#include "task.h"
+
+/* Exported constants --------------------------------------------------------*/
 
 /* Exported types ------------------------------------------------------------*/
 
 /* Extern variables ----------------------------------------------------------*/
-extern OS_STK Stack_Start[STACK_LEN_START];
 
-extern OS_EVENT *MBox_KeyValve;
+extern u16 ADC1_Value[2];
 
-extern OS_EVENT *MQueue;
-
-/* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 

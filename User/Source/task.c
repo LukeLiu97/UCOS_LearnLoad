@@ -30,6 +30,7 @@ OS_EVENT *MBox_WDOGVal = NULL;
 
 OS_EVENT *Sem_LED = NULL;
 OS_EVENT *Sem_Key = NULL;
+OS_EVENT *Sem_Temper = NULL;
 
 OS_FLAG_GRP *FLAG_GRP = NULL;
 
@@ -59,6 +60,8 @@ void Task_Start(void *pd)
 		MBox_WDOGVal = OSMboxCreate((void *)0);
 		
 		Sem_LED = OSSemCreate(0x00);
+		
+		Sem_Temper = OSSemCreate(0x00);
 		
 		FLAG_GRP = OSFlagCreate(0x00,&Err);
 		
@@ -97,6 +100,9 @@ void Task_Start(void *pd)
 					NULL,
 					&Stack_WDog[STACK_LEN_WDOG-1],
 					TASK_PRIO_WDOG);
+		
+		/* Start ADC1 Software Conversion */ 
+//		ADC_SoftwareStartConvCmd(ADC1, ENABLE);
 		
 		if(Retval == OS_ERR_NONE)
 		{
@@ -174,7 +180,7 @@ void Task_OLED(void *pd)
 	
 	while(1)
 	{
-		for(uint32_t i = 0;i < 7;i+=2)
+		for(uint32_t i = 4;i < 7;i+=2)
 		{
 			for(uint32_t j = 0;j < 16;j++)
 			{
@@ -202,19 +208,31 @@ void Task_Temper(void *pd)
 {
 	INT8U Err;
 	float TemperValue;
+	float LockValue;
 	
 	while(1)
 	{
+			
+		/* Start ADC1 Software Conversion */ 
+		ADC_SoftwareStartConvCmd(ADC1, ENABLE);
 		
-
 		OSMutexPend(Mutex_Temper,0,&Err);
-				
-		TemperValue = ADC_GetTemperValue();
+		
+		OSSemPend(Sem_Temper,0,&Err);
+		
+		LockValue = ADC_ConvertVot(ADC1_Value[0]);
+		TemperValue = ADC_ConvertTemp(ADC1_Value[1]);
 		
 		if(TemperValue > 0)
 		{
-			OLED_DisplayNumber(0,0,(u32)TemperValue,2,2);
-			OLED_DisplayNumber(0,24,(u32)(TemperValue*100)%100,2,2);
+#ifdef DEBUG
+			printf("LockValue:%f\r\n",LockValue);
+			printf("TemperValue:%f\r\n",TemperValue);
+#endif
+			OLED_DisplayNumber(0,0,(u32)LockValue,2,2);
+			OLED_DisplayNumber(0,24,(u32)(LockValue*100)%100,2,2);
+			OLED_DisplayNumber(2,0,(u32)TemperValue,2,2);
+			OLED_DisplayNumber(2,24,(u32)(TemperValue*100)%100,2,2);
 		}
 		else
 		{

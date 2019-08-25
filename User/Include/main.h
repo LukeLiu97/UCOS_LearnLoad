@@ -23,9 +23,8 @@ extern "C"
 //#include "os_cpu.h"
 //#include "os_cfg.h"	
 
-#include "task.h"
-
 #include "global.h"
+#include "task.h"
 	
 #include "led.h"
 #include "uart.h"

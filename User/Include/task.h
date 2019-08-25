@@ -29,8 +29,6 @@
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-
-/* Exported macro ------------------------------------------------------------*/
 #define STACK_LEN_START		(128)
 #define STACK_LEN_LED		(128)
 #define STACK_LEN_KEY		(128)
@@ -39,7 +37,7 @@
 #define STACK_LEN_WDOG		(128)
 
 #define TASK_PRIO_START		(0)
-#define TASK_PRIO_IDLE_1	(1)
+#define TASK_PRIO_IDLE_1	(1)	// 空闲优先级，供互斥锁使用
 #define TASK_PRIO_IDLE_2	(2) // 空闲优先级，供互斥锁使用
 #define TASK_PRIO_LED		(3)
 #define TASK_PRIO_KEY		(7)
@@ -49,6 +47,7 @@
 
 #define MQUEUE_LEN_KEYVALUE	(128)
 
+/* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 void Task_Start(void *pd);
 void Task_LED(void *pd);

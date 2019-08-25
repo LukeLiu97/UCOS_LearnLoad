@@ -28,9 +28,12 @@
   * @{
   */
 
+/* Extern variables ----------------------------------------------------------*/
+extern OS_EVENT *MQueue;
+extern OS_EVENT *Sem_Temper;
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -196,6 +199,35 @@ void EXTI3_IRQHandler(void)
 	
 	/* Allocate storage for CPU status register. */
 	OSIntExit();
+}
+
+/**
+  * @brief  This function handles PPP interrupt request.
+  * @param  None
+  * @retval None
+  */
+void DMA1_Channel1_IRQHandler(void)
+{
+	/* Increment ISR nesting level */
+	OSIntEnter();
+	
+	if(DMA_GetITStatus(DMA1_IT_TC1) != RESET)
+	{
+		
+		/* Interrupt task */
+
+		OSSemPost(Sem_Temper);
+		
+		/* Clear the DMA1 Channel1 transfer complete interrupt pending bit */
+		DMA_ClearITPendingBit(DMA1_IT_TC1);
+	}
+	else
+	{
+	}
+	
+	/* Allocate storage for CPU status register. */
+	OSIntExit();
+	
 }
 
 /**
