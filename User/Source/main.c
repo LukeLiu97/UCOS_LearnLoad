@@ -63,10 +63,14 @@ int main(void)
 	OLED_Clear();
 	
 	ADC1_DMA_Init();
-	
+
+#ifndef DEBUG
 	USART1_Init(115200);
-	
-//	IWWG_Init();
+#endif
+
+#ifdef REALSE
+	IWWG_Init();
+#endif
 
 	/* Enable global interrupt */
 	__set_PRIMASK(0);

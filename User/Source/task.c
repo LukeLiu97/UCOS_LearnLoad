@@ -252,6 +252,7 @@ void Task_WDog(void *pd)
 	INT8U Err = 0;
 	while(1)
 	{
+#ifdef REALSE
 		pmsg = (void *)OSMboxPend(MBox_WDOGVal,0,&Err);
 		if(pmsg != NULL)
 		{
@@ -267,6 +268,7 @@ void Task_WDog(void *pd)
 			{
 				
 			}
+#endif
 			
 			OSFlagPend(FLAG_GRP,(0x01 << 0)|(0x01 << 1)|(0x01 << 2),(OS_FLAG_WAIT_SET_AND)|(OS_FLAG_CONSUME),1,&Err);
 			if(Err == OS_ERR_NONE)
